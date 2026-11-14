@@ -7,14 +7,18 @@ import java.awt.event.*;
 public class Game extends JPanel implements ActionListener {
 
     // this defines the window dimensions
-    public final int windowWidth = 800;
-    public final int windowHeight = 600;
+    public final int windowWidth = 1280;
+    public final int windowHeight = 800;
 
     // sets the fps to 60 (1000/60 = around 16)
     public Timer timer = new Timer(16, this);
 
     // defines the current scene
     public String scene = "main_menu";
+
+    // mouse state
+    public int mouseX, mouseY;
+    public boolean clicked;
 
     // routes to Update.java (actions)
     @Override
@@ -35,7 +39,8 @@ public class Game extends JPanel implements ActionListener {
         setPreferredSize(new Dimension(windowWidth, windowHeight));
         Input in = new Input(this);
         addKeyListener(in);
-        setBackground(Color.BLACK);
+        addMouseListener(in);
+        addMouseMotionListener(in);
         setFocusable(true);
         timer.start();
     }
