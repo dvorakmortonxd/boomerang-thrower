@@ -11,8 +11,16 @@ public class Input extends MouseAdapter implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_ESCAPE -> System.exit(0);
+            case KeyEvent.VK_ESCAPE -> {
+                switch (m.scene) {
+                    case "main_menu" -> System.exit(0);
+                    case "top_layer" -> m.scene = "paused";
+                    case "paused" -> m.scene = "top_layer";
+                    case "shop" -> m.scene = "paused";
+                }
+            }
             case KeyEvent.VK_SPACE -> System.out.println("Hello world!");
+            case KeyEvent.VK_F -> m.toggleFullscreen();
         }
     }
     // what happens when you RELEASE a key on your keyboard
@@ -41,8 +49,10 @@ public class Input extends MouseAdapter implements KeyListener {
         }
     }
 
+    // the game can be stretched (fullscreen), so turn the mouse position on the screen
+    // back into a position in the game
     private void pos(MouseEvent e) {
-        m.mouseX = e.getX();
-        m.mouseY = e.getY();
+        m.mouseX = (int) ((e.getX() - m.offsetX) / m.scale);
+        m.mouseY = (int) ((e.getY() - m.offsetY) / m.scale);
     }
 }
