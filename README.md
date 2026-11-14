@@ -1,8 +1,6 @@
-# My Swing+2D Graphics Java template
+# Boomerang Thrower
 
-## instructions
-
-- change the license mention of the project's name from <GAME> to your game's name
-- change the window title
-- change root project name in settings.gradle.kts
-- after that, go crazy!
+Game made by:
+Coder: dvorakmortonxd (Martin Dvořák)
+Texture work: Ondřej Bradáč
+Music work: Tobiáš Radoberský

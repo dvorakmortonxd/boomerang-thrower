@@ -41,7 +41,7 @@ public class Game extends JPanel implements ActionListener {
     }
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Game title (CHANGE THIS)");
+        JFrame frame = new JFrame("Boomerang Thrower");
         frame.setResizable(false); // NOT resizable
         frame.add(new Game());
         frame.pack();
