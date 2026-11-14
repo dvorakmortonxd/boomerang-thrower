@@ -1,6 +1,6 @@
 # Boomerang Thrower
 
-Game made by:
-Coder: dvorakmortonxd (Martin Dvořák)
-Texture work: Ondřej Bradáč
-Music work: Tobiáš Radoberský
+Game made by: <br>
+Coder: dvorakmortonxd (Martin Dvořák) <br>
+Texture work: Ondřej Bradáč <br>
+Music work: Tobiáš Radoberský <br>
