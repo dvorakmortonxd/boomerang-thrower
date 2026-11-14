@@ -7,7 +7,7 @@ import java.awt.event.*;
 public class Game extends JPanel implements ActionListener {
 
     // this defines the window dimensions
-    public final int windowWidth = 1280;
+    public final int windowWidth = 280;
     public final int windowHeight = 800;
 
     // sets the fps to 60 (1000/60 = around 16)
