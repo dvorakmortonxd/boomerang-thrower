@@ -29,8 +29,11 @@ public class Update {
                 if (m.quitButton.contains(m.mouseX, m.mouseY)) {
                     System.exit(0);
                 }
+            } else if (m.scene.equals("shop")) {
+                Shop.click(m);
             }
         }
+        Music.update(m);
         if (m.scene.equals("top_layer")) {
             moveBoomerang(m);
             spawnEnemies(m);
@@ -93,12 +96,12 @@ public class Update {
             case 3 -> { x = m.windowWidth; y = m.random.nextInt(m.windowHeight); }    // right
         }
 
-        Enemy e = new Enemy(x, y);
+        Enemy e = new Enemy(x, y, m.enemyMaxHealth);
         pickNewWalkTo(m, e);
         m.enemies.add(e);
     }
 
-    // gives the zombie a random spot to walk to that's on the map but not in the middle
+    // gives the enemy a random spot to walk to that's on the map but not in the middle
     static void pickNewWalkTo(Game m, Enemy e) {
         int middleX = m.windowWidth / 2;
         int middleY = m.windowHeight / 2;
@@ -133,9 +136,9 @@ public class Update {
         Rectangle boomerang = new Rectangle((int) m.boomerangX - half, (int) m.boomerangY - half, m.boomerangSize, m.boomerangSize);
 
         for (Enemy e : m.enemies) {
-            Rectangle zombie = new Rectangle((int) e.x - Enemy.width / 2, (int) e.y - Enemy.height / 2, Enemy.width, Enemy.height);
-            if (!e.hitThisThrow && boomerang.intersects(zombie)) {
-                e.health--;
+            Rectangle body = new Rectangle((int) e.x - Enemy.width / 2, (int) e.y - Enemy.height / 2, Enemy.width, Enemy.height);
+            if (!e.hitThisThrow && boomerang.intersects(body)) {
+                e.health -= m.boomerangDamage;
                 e.hitThisThrow = true;
                 if (e.health <= 0) {
                     m.coins += m.coinsPerKill;
@@ -144,7 +147,7 @@ public class Update {
             }
         }
 
-        // remove every zombie that has no health left
+        // remove every enemy that has no health left
         m.enemies.removeIf(e -> e.health <= 0);
     }
 
@@ -160,29 +163,41 @@ public class Update {
                 drawButton(m, g, m.shopButton, "Shop");
                 drawButton(m, g, m.quitButton, "Quit");
             }
-            case "shop" -> {
-                darkenScreen(m, g);
-                g.setColor(Color.WHITE);
-                g.setFont(new Font("Arial", Font.BOLD, 54));
-                drawCenteredText(m, g, "Coming soon", m.windowHeight / 2);
-                g.setFont(new Font("Arial", Font.PLAIN, 24));
-                drawCenteredText(m, g, "press ESC to go back", m.windowHeight / 2 + 60);
-            }
+            case "shop" -> Shop.paint(m, g);
+            case "win" -> drawWinScreen(m, g);
         }
     }
 
-    static void drawGame(Game m, Graphics g) {
-        // draws the map stretched over the whole window
-        g.drawImage(m.topLayer, 0, 0, m.windowWidth, m.windowHeight, null);
+    static void drawWinScreen(Game m, Graphics g) {
+        g.drawImage(m.winImage, 0, 0, null);
 
-        // zombies, with a health bar under each one
+        // black text a bit lower right first, so the yellow text is readable on any picture
+        int middle = m.windowWidth / 2;
+        g.setFont(m.winFont);
+        g.setColor(Color.BLACK);
+        drawCenteredText(g, "YOU WIN", middle + 5, m.windowHeight / 2 + 5);
+        g.setColor(Color.YELLOW);
+        drawCenteredText(g, "YOU WIN", middle, m.windowHeight / 2);
+
+        g.setFont(m.smallFont);
+        g.setColor(Color.BLACK);
+        drawCenteredText(g, "press ESC to quit", middle + 2, m.windowHeight - 38);
+        g.setColor(Color.WHITE);
+        drawCenteredText(g, "press ESC to quit", middle, m.windowHeight - 40);
+    }
+
+    static void drawGame(Game m, Graphics g) {
+        // the map (it's already as big as the window, see Game.stretchToWindow)
+        g.drawImage(m.background, 0, 0, null);
+
+        // enemies, with a health bar under each one
         for (Enemy e : m.enemies) {
             int left = (int) e.x - Enemy.width / 2;
             int top = (int) e.y - Enemy.height / 2;
-            g.drawImage(m.zombieImage, left, top, Enemy.width, Enemy.height, null);
+            g.drawImage(m.enemyImage, left, top, Enemy.width, Enemy.height, null);
 
             int barY = top + Enemy.height + 4;
-            int barWidth = Enemy.width * e.health / Enemy.maxHealth;
+            int barWidth = Enemy.width * e.health / e.maxHealth;
             g.setColor(Color.DARK_GRAY);
             g.fillRect(left, barY, Enemy.width, 5);
             g.setColor(Color.RED);
@@ -199,7 +214,7 @@ public class Update {
 
         // coin counter in the top left corner
         g.setColor(Color.YELLOW);
-        g.setFont(new Font("Arial", Font.BOLD, 32));
+        g.setFont(m.counterFont);
         g.drawString("Coins: " + m.coins, 20, 45);
 
         // experience counter in the bottom left corner
@@ -222,16 +237,16 @@ public class Update {
         g.fillRect(b.x, b.y, b.width, b.height);
 
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 54));
+        g.setFont(m.buttonFont);
         int textWidth = g.getFontMetrics().stringWidth(text);
         int textX = b.x + (b.width - textWidth) / 2;
         int textY = b.y + b.height / 2 + 18; // +18 because text is drawn from its bottom
         g.drawString(text, textX, textY);
     }
 
-    // draws the text in the middle of the window (left to right), y is where its bottom goes
-    static void drawCenteredText(Game m, Graphics g, String text, int y) {
+    // draws the text so its middle (left to right) is at centerX, y is where its bottom goes
+    static void drawCenteredText(Graphics g, String text, int centerX, int y) {
         int textWidth = g.getFontMetrics().stringWidth(text);
-        g.drawString(text, (m.windowWidth - textWidth) / 2, y);
+        g.drawString(text, centerX - textWidth / 2, y);
     }
 }

@@ -17,6 +17,7 @@ public class Input extends MouseAdapter implements KeyListener {
                     case "top_layer" -> m.scene = "paused";
                     case "paused" -> m.scene = "top_layer";
                     case "shop" -> m.scene = "paused";
+                    case "win" -> System.exit(0);
                 }
             }
             case KeyEvent.VK_SPACE -> System.out.println("Hello world!");
