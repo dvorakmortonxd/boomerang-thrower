@@ -24,3 +24,10 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+// tells java which class has main(), so the jar can be started with "java -jar" or a double click
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "dev.dvorakmortonxd.Game"
+    }
+}

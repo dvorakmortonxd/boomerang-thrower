@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 public class Game extends JPanel implements ActionListener {
@@ -24,6 +25,7 @@ public class Game extends JPanel implements ActionListener {
 
     // sets the fps to 60 (1000/60 = around 16)
     public Timer timer = new Timer(16, this);
+    public long lastTickTime = System.nanoTime();
 
     // defines the current scene
     public String scene = "main_menu";
@@ -48,8 +50,10 @@ public class Game extends JPanel implements ActionListener {
     public BufferedImage winImage;
 
     // music, see Music.java for which one plays when
-    public Clip menuMusic, levelMusic, tenseMusic, ratingMusic;
-    public Clip playingMusic; // the one playing right now
+    public HashMap<String, Clip> songs = new HashMap<>(); // file name -> the loaded song
+    public String playingSong = ""; // file name of the one playing right now
+    // true when the game runs in a web page (web/index.html sets it)
+    public final boolean inBrowser = Boolean.getBoolean("browser");
 
     // the play button in the main menu (300x150, in the middle of the window)
     public Rectangle playButton = new Rectangle(windowWidth / 2 - 150, windowHeight / 2 - 75, 300, 150);
@@ -115,7 +119,18 @@ public class Game extends JPanel implements ActionListener {
     // routes to Update.java (actions)
     @Override
     public void actionPerformed(ActionEvent e) {
-        Update.performPerTick(this);
+        // how many 16 ms ticks passed since last time, normally 1,
+        // but the browser only calls this ~30 times a second so there it's 2 (otherwise the game is in slow motion)
+        int ticks = (int) Math.round((System.nanoTime() - lastTickTime) / 16_000_000.0);
+        lastTickTime += ticks * 16_000_000L;
+        if (ticks > 5) {
+            // way behind (the computer was busy), don't try to catch up all of it
+            ticks = 5;
+            lastTickTime = System.nanoTime();
+        }
+        for (int i = 0; i < ticks; i++) {
+            Update.performPerTick(this);
+        }
     }
 
     // routes to Update.java (rendering)
@@ -151,7 +166,7 @@ public class Game extends JPanel implements ActionListener {
         // the window has to be closed for a moment to take away (or give back) its title bar
         screen.setFullScreenWindow(null);
         frame.dispose();
-        frame.setUndecorated(fullscreen);
+        frame.setUndecorated(fullscreen || inBrowser); // no title bar in the browser, see main
         frame.setVisible(true);
 
         if (fullscreen) {
@@ -199,10 +214,12 @@ public class Game extends JPanel implements ActionListener {
         schoolLayer = stretchToWindow(schoolLayer);
         winImage = stretchToWindow(winImage);
 
-        menuMusic = Music.load("/mainmenuloop.wav");
-        levelMusic = Music.load("/levelloop.wav");
-        tenseMusic = Music.load("/looptense.wav");
-        ratingMusic = Music.load("/ratingloop.wav");
+        // in the browser the web page plays the music, so nothing to load here
+        if (!inBrowser) {
+            for (String song : Music.allSongs) {
+                songs.put(song, Music.load(song));
+            }
+        }
 
         // the game starts on the grass with zombies
         background = topLayer;
@@ -213,7 +230,8 @@ public class Game extends JPanel implements ActionListener {
     // the maps are 256x256, this makes a window-sized copy once,
     // so they don't have to be stretched again every frame (that's slow)
     private BufferedImage stretchToWindow(BufferedImage small) {
-        BufferedImage big = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_ARGB);
+        // no see-through pixels (RGB, not ARGB), so it can just be copied on the screen, much faster in the browser
+        BufferedImage big = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB);
         Graphics g = big.getGraphics();
         g.drawImage(small, 0, 0, windowWidth, windowHeight, null);
         g.dispose();
@@ -233,6 +251,9 @@ public class Game extends JPanel implements ActionListener {
         frame.setResizable(false); // NOT resizable
         Game game = new Game();
         game.frame = frame;
+        // in the browser the title bar made the game a bit smaller than 900x900,
+        // and shrinking every frame made it super laggy, so no title bar there
+        frame.setUndecorated(game.inBrowser);
         frame.add(game);
         frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // enables the X button in the title bar
